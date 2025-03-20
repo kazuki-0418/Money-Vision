@@ -1,0 +1,31 @@
+pre-commit:
+  commands:
+    check-frontend:
+      glob: "frontend/**/*.{js,ts,cjs,mjs,d.cts,d.mts,jsx,tsx,json,jsonc}"
+      run: |
+        if [ -n "$(git diff --cached --name-only --diff-filter=ACMR frontend/)" ]; then
+          npx biome check --write --no-errors-on-unmatched --files-ignore-unknown=true frontend/
+          git update-index --again
+        fi
+    check-backend:
+      glob: "backend/**/*.{js,ts,cjs,mjs,d.cts,d.mts,jsx,tsx,json,jsonc}"
+      run: |
+        if [ -n "$(git diff --cached --name-only --diff-filter=ACMR backend/)" ]; then
+          npx biome check --write --no-errors-on-unmatched --files-ignore-unknown=true backend/
+          git update-index --again
+        fi
+
+pre-push:
+  commands:
+    check-frontend:
+      glob: "frontend/**/*.{js,ts,cjs,mjs,d.cts,d.mts,jsx,tsx,json,jsonc}"
+      run: |
+        if [ -n "$(git diff origin/main..HEAD --name-only frontend/)" ]; then
+          npx biome check --no-errors-on-unmatched --files-ignore-unknown=true frontend/
+        fi
+    check-backend:
+      glob: "backend/**/*.{js,ts,cjs,mjs,d.cts,d.mts,jsx,tsx,json,jsonc}"
+      run: |
+        if [ -n "$(git diff origin/main..HEAD --name-only backend/)" ]; then
+          npx biome check --no-errors-on-unmatched --files-ignore-unknown=true backend/
+        fi
