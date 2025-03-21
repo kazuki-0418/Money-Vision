@@ -1,6 +1,6 @@
-import express from 'express';
-import bankAccountController from '../controllers/bank-account.controller';
-import { authMiddleware } from '../middlewares/auth.middleware';
+import express from "express";
+import bankAccountController from "../controllers/bank-account.controller";
+import { authMiddleware } from "../middlewares/auth.middleware";
 
 const router = express.Router();
 
@@ -8,8 +8,8 @@ const router = express.Router();
 router.use(authMiddleware);
 
 // Bank account routes
-router.get('/', bankAccountController.getAccounts);
-router.get('/refresh', bankAccountController.refreshBalances);
-router.get('/:id', bankAccountController.getAccountById);
+router.get("/", bankAccountController.getAccounts);
+router.get("/refresh", bankAccountController.refreshBalances);
+router.get("/:id", bankAccountController.getAccountById);
 
 export default router;

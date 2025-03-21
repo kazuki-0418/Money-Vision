@@ -27,7 +27,7 @@ export interface BankAccount {
   accountName: string;
   balance: number;
   currency: string;
-  type: 'checking' | 'savings' | 'credit';
+  type: "checking" | "savings" | "credit";
   createdAt: Date;
   updatedAt: Date;
 }
@@ -41,7 +41,7 @@ export interface Transaction {
   description: string;
   category: string;
   date: Date;
-  type: 'income' | 'expense' | 'transfer';
+  type: "income" | "expense" | "transfer";
   merchant?: string;
   tags?: string[];
   createdAt: Date;
@@ -54,7 +54,7 @@ export interface TransactionCreate {
   description: string;
   category: string;
   date: Date;
-  type: 'income' | 'expense' | 'transfer';
+  type: "income" | "expense" | "transfer";
   merchant?: string;
   tags?: string[];
 }
@@ -64,7 +64,7 @@ export interface TransactionUpdate {
   description?: string;
   category?: string;
   date?: Date;
-  type?: 'income' | 'expense' | 'transfer';
+  type?: "income" | "expense" | "transfer";
   merchant?: string;
   tags?: string[];
 }

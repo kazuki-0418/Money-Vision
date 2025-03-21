@@ -1,12 +1,16 @@
-import session from 'express-session';
+import session from "express-session";
 
-declare module 'express-session' {
+declare module "express-session" {
   interface SessionData {
-    user: any; // Adjust the type according to your user object structure
+    user: {
+      id: string;
+      username: string;
+      email: string;
+    };
   }
 }
 
-declare module 'express-serve-static-core' {
+declare module "express-serve-static-core" {
   interface Request {
     session: session.Session & Partial<session.SessionData>;
   }

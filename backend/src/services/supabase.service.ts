@@ -1,4 +1,4 @@
-import { Transaction, BankAccount } from '../types';
+import { BankAccount, Transaction } from "../types";
 
 // This is a mock Supabase service to simulate database operations
 // In a real application, this would use the actual Supabase client
@@ -45,12 +45,16 @@ class SupabaseService {
   }
 
   // Update a transaction
-  async updateTransaction(userId: string, transactionId: string, updates: Partial<Transaction>): Promise<Transaction | null> {
+  async updateTransaction(
+    userId: string,
+    transactionId: string,
+    updates: Partial<Transaction>,
+  ): Promise<Transaction | null> {
     if (!this.transactions[userId]) {
       return null;
     }
 
-    const index = this.transactions[userId].findIndex(t => t.id === transactionId);
+    const index = this.transactions[userId].findIndex((t) => t.id === transactionId);
     if (index === -1) {
       return null;
     }
@@ -58,7 +62,7 @@ class SupabaseService {
     this.transactions[userId][index] = {
       ...this.transactions[userId][index],
       ...updates,
-      updatedAt: new Date()
+      updatedAt: new Date(),
     };
 
     return this.transactions[userId][index];
@@ -71,8 +75,8 @@ class SupabaseService {
     }
 
     const initialLength = this.transactions[userId].length;
-    this.transactions[userId] = this.transactions[userId].filter(t => t.id !== transactionId);
-    
+    this.transactions[userId] = this.transactions[userId].filter((t) => t.id !== transactionId);
+
     return initialLength > this.transactions[userId].length;
   }
 
@@ -83,12 +87,13 @@ class SupabaseService {
     }
 
     const lowerQuery = query.toLowerCase();
-    
-    return this.transactions[userId].filter(transaction => 
-      transaction.description.toLowerCase().includes(lowerQuery) ||
-      transaction.category.toLowerCase().includes(lowerQuery) ||
-      (transaction.merchant && transaction.merchant.toLowerCase().includes(lowerQuery)) ||
-      (transaction.tags && transaction.tags.some(tag => tag.toLowerCase().includes(lowerQuery)))
+
+    return this.transactions[userId].filter(
+      (transaction) =>
+        transaction.description.toLowerCase().includes(lowerQuery) ||
+        transaction.category.toLowerCase().includes(lowerQuery) ||
+        transaction.merchant?.toLowerCase().includes(lowerQuery) ||
+        transaction.tags?.some((tag) => tag.toLowerCase().includes(lowerQuery)),
     );
   }
 }
