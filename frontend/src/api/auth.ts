@@ -1,10 +1,12 @@
 import { client } from "./client";
 
+const BASE_URL_USERS = "/api/users";
+
 export const loginApi = (credentials: {
   email: string;
   password: string;
 }) => {
-  return client.post("/login", credentials);
+  return client.post(`${BASE_URL_USERS}/login`, credentials);
 };
 
 export const registerApi = (userData: {
@@ -12,19 +14,19 @@ export const registerApi = (userData: {
   email: string;
   password: string;
 }) => {
-  return client.post("/register", userData);
+  return client.post(`${BASE_URL_USERS}/register`, userData);
 };
 
 export const logoutApi = () => {
-  return client.post("/logout");
+  return client.post(`${BASE_URL_USERS}/logout`);
 };
 
 export const refreshTokenApi = (token: {
   token: string;
 }) => {
-  return client.post("/auth/refresh", { token });
+  return client.post(`${BASE_URL_USERS}/refresh`, { token });
 };
 
 export const getCurrentUserApi = () => {
-  return client.get("/auth/me");
+  return client.get(`${BASE_URL_USERS}/me`);
 };

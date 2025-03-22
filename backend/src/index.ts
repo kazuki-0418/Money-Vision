@@ -24,12 +24,22 @@ app.use(helmet());
 app.use(morgan("dev"));
 app.use(
   cors({
-    origin: "http://localhost:5173",
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
+    origin: ["http://localhost:5173", "http://localhost:3000"].filter(Boolean),
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+    allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With", "Accept"],
     credentials: true,
+    maxAge: 86400, // 24時間（秒単位）のプリフライトリクエストのキャッシュ
   }),
 );
+
+app.use(
+  helmet({
+    crossOriginResourcePolicy: { policy: "cross-origin" },
+  }),
+);
+
+// CORSエラー対策のプリフライト用レスポンスヘッダー
+app.options("*", cors());
 
 // Configure cookie session
 app.use(
@@ -66,6 +76,7 @@ app.use((req, res) => {
 
 // Start server
 app.listen(PORT, () => {
+  // biome-ignore lint/suspicious/noConsoleLog: <explanation>
   console.log(`Server running on port ${PORT}`);
 });
 

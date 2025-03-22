@@ -7,7 +7,7 @@ class UserModel {
   private users: User[] = [];
 
   // Create a new user
-  async create(userData: UserRegistration): Promise<User> {
+  async create(userData: UserRegistration): Promise<Omit<User, "password">> {
     // Check if user with email already exists
     const existingUser = this.users.find((user) => user.email === userData.email);
     if (existingUser) {
@@ -31,7 +31,7 @@ class UserModel {
 
     // Return user without password
     const { password, ...userWithoutPassword } = newUser;
-    return newUser;
+    return userWithoutPassword;
   }
 
   // Find user by ID

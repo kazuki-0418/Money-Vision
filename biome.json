@@ -12,13 +12,17 @@
     "ignore": ["node_modules"],
     "rules": {
       "correctness": {
-        "noUnusedImports": "error"
+        "noUnusedImports": "error",
+        "useExhaustiveDependencies": "warn"
+      },
+      "suspicious": {
+        "noConsoleLog": "error"
       }
     }
   },
   "formatter": {
     "enabled": true,
-    "formatWithErrors": true,
+    "formatWithErrors": false,
     "indentStyle": "space",
     "indentWidth": 2,
     "lineWidth": 100
@@ -87,15 +91,16 @@
                     "formats": ["PascalCase"]
                   },
                   {
-                    "selector": { "kind": "variable" },
-                    "formats": ["camelCase"]
+                    "selector": {
+                      "kind": "const"
+                    },
+                    "formats": ["camelCase", "CONSTANT_CASE"]
                   },
                   {
                     "selector": {
-                      "kind": "const",
-                      "scope": "global"
+                      "kind": "variable"
                     },
-                    "formats": ["CONSTANT_CASE"]
+                    "formats": ["camelCase"]
                   }
                 ]
               }

@@ -1,7 +1,9 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { registerApi } from "../../api/auth";
 
 function RegisterForm() {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -34,13 +36,8 @@ function RegisterForm() {
     }
 
     try {
-      console.log("Registering with:", formData);
-
       await registerApi(formData);
-      setTimeout(() => {
-        window.location.href = "/login";
-      }, 3000);
-
+      navigate("/login", { replace: true });
       setSuccess(true);
     } catch (err) {
       if (err instanceof Error) {

@@ -1,6 +1,10 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { loginApi } from "../../api/auth";
 
 function LoginForm() {
+  const navigate = useNavigate();
+
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -22,15 +26,12 @@ function LoginForm() {
     setLoading(true);
     setError("");
 
+    const { email, password } = formData;
     try {
-      // Call your login function here
-      // For example: await login(formData.email, formData.password);
-      console.log("Logging in with:", formData);
-
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      await loginApi({ email, password });
 
       setSuccess(true);
+      navigate("/", { replace: true });
     } catch (err) {
       if (err instanceof Error) {
         setError(err.message || "Login failed. Please check your credentials.");
