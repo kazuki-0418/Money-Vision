@@ -24,7 +24,9 @@ app.use(helmet());
 app.use(morgan("dev"));
 app.use(
   cors({
-    origin: process.env.NODE_ENV === "production" ? "https://yourapp.com" : "http://localhost:3000",
+    origin: "http://localhost:5173",
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true,
   }),
 );
