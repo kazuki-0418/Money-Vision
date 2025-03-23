@@ -1,6 +1,6 @@
 import { client } from "./client";
 
-export const getTransactionsApi = (params = {}) => {
+export const loadTransactionsApi = (params = {}) => {
   return client.get("/transactions", { params });
 };
 

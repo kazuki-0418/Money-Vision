@@ -1,10 +1,13 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { loginApi } from "../../api/auth";
+import { useAuthManager } from "../../hooks/auth";
+import { useUserStore } from "../../store/userStore";
 
 function LoginForm() {
   const navigate = useNavigate();
-
+  const { login } = useAuthManager();
+  const { setUser } = useUserStore();
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -12,6 +15,17 @@ function LoginForm() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
+
+  // success状態が変わったときに実行される効果を追加
+  useEffect(() => {
+    if (success) {
+      const redirectTimer = setTimeout(() => {
+        navigate("/", { replace: true });
+      }, 1000); // 1秒後にリダイレクト
+
+      return () => clearTimeout(redirectTimer);
+    }
+  }, [success, navigate]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -28,13 +42,24 @@ function LoginForm() {
 
     const { email, password } = formData;
     try {
-      await loginApi({ email, password });
-
-      setSuccess(true);
-      navigate("/", { replace: true });
+      const response = await loginApi({ email, password });
+      if (response.data.success) {
+        const { data } = response;
+        setSuccess(true);
+        login();
+        setUser({
+          id: data.id,
+          username: data.username,
+          email: data.email,
+        });
+        navigate("/", { replace: true });
+      }
     } catch (err) {
+      console.error("Login Failed:", err);
       if (err instanceof Error) {
         setError(err.message || "Login failed. Please check your credentials.");
+      } else {
+        setError("An unexpected error occurred. Please try again.");
       }
     } finally {
       setLoading(false);

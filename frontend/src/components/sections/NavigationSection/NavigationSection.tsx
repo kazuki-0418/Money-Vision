@@ -6,10 +6,18 @@ import type { JSX } from "react";
 import { CiBellOn, CiHome, CiWallet } from "react-icons/ci";
 import { FiMoreHorizontal } from "react-icons/fi";
 import { IoTrophyOutline } from "react-icons/io5";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
+import { logoutApi } from "../../../api/auth";
+import { useAuthManager } from "../../../hooks/auth";
+import { useUserStore } from "../../../store/userStore";
+import { Button } from "../../ui/button";
+import { Tooltip } from "../../ui/tooltip";
 import { NavigationItem } from "./NavigationItem";
 
 export function NavigationSection(): JSX.Element {
+  const navigate = useNavigate();
+  const { logout } = useAuthManager();
+  const { user } = useUserStore();
   const menuItems = [
     { icon: <CiHome className="h-6 w-6" />, label: "Home", value: "" },
     { icon: <IoTrophyOutline className="h-6 w-6" />, label: "Goals", value: "goals" },
@@ -38,6 +46,18 @@ export function NavigationSection(): JSX.Element {
 
   const location = useLocation();
   const currentPath = location.pathname;
+
+  const handleLogout = async () => {
+    try {
+      await logoutApi();
+      logout();
+      navigate("/login");
+    } catch (error) {
+      console.error("ログアウトエラー:", error);
+      logout();
+      navigate("/login");
+    }
+  };
 
   return (
     <div className="flex flex-col bg-white h-full rounded-[5px] shadow-1 w-[278px]">
@@ -72,11 +92,41 @@ export function NavigationSection(): JSX.Element {
           <div className="flex gap-2 items-center">
             <Avatar className="h-[30px] w-[30px]">
               <AvatarImage src="/ellipse-5.png" alt="User avatar" />
-              <AvatarFallback>KJ</AvatarFallback>
+              <AvatarFallback>
+                <span>{user?.username}</span>
+              </AvatarFallback>
             </Avatar>
             <span className="text-[#342e30] text-lg font-medium tracking-[-0.18px]">Kazuki Jo</span>
           </div>
-          <FiMoreHorizontal className="h-6 w-6" />
+          <Tooltip
+            content={
+              <Button
+                className="text-[#342e30] bg-gray-100 hover:bg-gray-200 hover:cursor-pointer"
+                onClick={handleLogout}
+              >
+                <svg
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <title>Logout</title>
+                  <path
+                    d="M17 7L15.59 8.41L18.17 11H8V13H18.17L15.59 15.58L17 17L22 12L17 7Z"
+                    fill="currentColor"
+                  />
+                  <path
+                    d="M4 19H12V21H4C2.9 21 2 20.1 2 19V5C2 3.9 2.9 3 4 3H12V5H4V19Z"
+                    fill="currentColor"
+                  />
+                </svg>
+                <span>Logout</span>
+              </Button>
+            }
+          >
+            <FiMoreHorizontal className="h-6 w-6 hover:cursor-pointer" />
+          </Tooltip>
         </div>
       </div>
     </div>

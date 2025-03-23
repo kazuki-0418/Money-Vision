@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const client = axios.create({
+export const client = axios.create({
   // biome-ignore lint/style/useNamingConvention: <explanation>
   baseURL: import.meta.env.VITE_API_URL || "http://localhost:8000",
   withCredentials: true,
@@ -10,4 +10,12 @@ const client = axios.create({
   timeout: 5000,
 });
 
-export { client };
+client.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response && error.response.status === 401) {
+      window.location.href = "/login";
+    }
+    return Promise.reject(error);
+  },
+);

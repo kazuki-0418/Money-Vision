@@ -21,7 +21,8 @@ class UserModel {
     const hashedPassword = await bcrypt.hash(userData.password, salt);
 
     const createdUser = await this.userService.createUser({
-      ...userData,
+      username: userData.username,
+      email: userData.email,
       password: hashedPassword,
     });
 
