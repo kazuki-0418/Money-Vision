@@ -1,5 +1,6 @@
 // src/hooks/useAuthManager.ts
 import { useCallback, useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
 import { checkAuthStatus } from "../api/auth";
 
 // 認証状態のキャッシュ時間 (5分)
@@ -19,6 +20,7 @@ let authState: AuthState = {
 export const useAuthManager = () => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(authState.isAuthenticated);
   const [isLoading, setIsLoading] = useState<boolean>(authState.isAuthenticated === null);
+  const location = useLocation();
 
   const checkAuth = useCallback(async (force = false) => {
     const now = Date.now();
@@ -42,6 +44,7 @@ export const useAuthManager = () => {
       // グローバル状態と内部状態を更新
       authState = { isAuthenticated: status, lastChecked: now };
       setIsAuthenticated(status);
+
       return status;
     } catch (error) {
       console.error("認証確認エラー:", error);
@@ -53,15 +56,29 @@ export const useAuthManager = () => {
     }
   }, []);
 
-  // 初期化
+  // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
   useEffect(() => {
-    checkAuth();
-  }, [checkAuth]);
+    const init = async () => {
+      const authStatus = await checkAuth();
+      if (authStatus === false && window.location.pathname !== "/login") {
+        window.location.href = "/login";
+      }
+    };
+    if (location.pathname === "/login") {
+      setIsLoading(false);
+      if (authState.isAuthenticated === true) {
+        window.location.href = "/";
+      }
 
-  const login = useCallback(() => {
+      return;
+    }
+    init();
+  }, []);
+
+  const login = () => {
     authState = { isAuthenticated: true, lastChecked: Date.now() };
     setIsAuthenticated(true);
-  }, []);
+  };
 
   const logout = useCallback(() => {
     authState = { isAuthenticated: false, lastChecked: Date.now() };

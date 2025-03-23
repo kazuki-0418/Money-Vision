@@ -16,7 +16,6 @@ function LoginForm() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
 
-  // success状態が変わったときに実行される効果を追加
   useEffect(() => {
     if (success) {
       const redirectTimer = setTimeout(() => {
@@ -52,7 +51,7 @@ function LoginForm() {
           username: data.username,
           email: data.email,
         });
-        navigate("/", { replace: true });
+        window.location.href = "/";
       }
     } catch (err) {
       console.error("Login Failed:", err);

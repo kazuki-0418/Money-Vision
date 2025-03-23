@@ -6,7 +6,7 @@ import type { JSX } from "react";
 import { CiBellOn, CiHome, CiWallet } from "react-icons/ci";
 import { FiMoreHorizontal } from "react-icons/fi";
 import { IoTrophyOutline } from "react-icons/io5";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import { logoutApi } from "../../../api/auth";
 import { useAuthManager } from "../../../hooks/auth";
 import { useUserStore } from "../../../store/userStore";
@@ -15,7 +15,6 @@ import { Tooltip } from "../../ui/tooltip";
 import { NavigationItem } from "./NavigationItem";
 
 export function NavigationSection(): JSX.Element {
-  const navigate = useNavigate();
   const { logout } = useAuthManager();
   const { user } = useUserStore();
   const menuItems = [
@@ -48,15 +47,9 @@ export function NavigationSection(): JSX.Element {
   const currentPath = location.pathname;
 
   const handleLogout = async () => {
-    try {
-      await logoutApi();
-      logout();
-      navigate("/login");
-    } catch (error) {
-      console.error("ログアウトエラー:", error);
-      logout();
-      navigate("/login");
-    }
+    await logoutApi();
+    logout();
+    window.location.href = "/login";
   };
 
   return (

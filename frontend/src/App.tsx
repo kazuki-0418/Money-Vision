@@ -18,16 +18,22 @@ function App() {
 
   return (
     <Routes>
-      <Route element={<MainLayout />}>
-        <Route path="/" element={<Home />} />
-        <Route path="/goals" element={<Goals />} />
-        <Route path="/transaction" element={<Transaction />} />
-        <Route path="/statistic" element={<Statistics />} />
-        <Route path="/report" element={<Report />} />
-        <Route path="/notifications" element={<Home />} />
-        <Route path="/settings" element={<Home />} />
-        <Route path="*" element={<Home />} />
-      </Route>
+      {isAuthenticated ? (
+        <Route element={<MainLayout />}>
+          <Route path="/" element={<Home />} />
+          <Route path="/goals" element={<Goals />} />
+          <Route path="/transaction" element={<Transaction />} />
+          <Route path="/statistic" element={<Statistics />} />
+          <Route path="/report" element={<Report />} />
+          <Route path="/notifications" element={<Home />} />
+          <Route path="/settings" element={<Home />} />
+          <Route path="*" element={<Home />} />
+        </Route>
+      ) : (
+        // 認証されていない場合、ログインページにリダイレクト
+        <Route path="*" element={<Navigate to="/login" replace />} />
+      )}
+
       <Route path="/register" element={<RegisterForm />} />
       <Route
         path="/login"

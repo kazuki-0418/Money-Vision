@@ -9,13 +9,3 @@ export const client = axios.create({
   },
   timeout: 5000,
 });
-
-client.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    if (error.response && error.response.status === 401) {
-      window.location.href = "/login";
-    }
-    return Promise.reject(error);
-  },
-);
