@@ -1,9 +1,7 @@
 import { Request, Response } from "express";
 import { clearSession } from "../middlewares/auth.middleware";
-import bankAccountModel from "../models/bank-account.model";
-import transactionModel from "../models/transaction.model";
 import userModel from "../models/user.model";
-import { UserLogin, UserRegistration } from "../types";
+import { UserLogin, UserRegistration } from "../types/users";
 
 class UserController {
   // Register a new user
@@ -30,17 +28,6 @@ class UserController {
           email: user.email,
         };
       }
-
-      // Create default bank account and seed test data
-      const defaultAccount = bankAccountModel.create(user.id, {
-        accountName: "普通預金",
-        balance: 250000,
-        currency: "JPY",
-        type: "checking",
-      });
-
-      // Seed some transactions
-      transactionModel.seedTestData(user.id, defaultAccount.id);
 
       return res.status(201).json({
         success: true,
@@ -112,6 +99,13 @@ class UserController {
 
   // Logout user
   logout(req: Request, res: Response) {
+    if (!req.session.user && !req.user) {
+      return res.status(401).json({
+        success: false,
+        message: "Not authenticated",
+      });
+    }
+
     // Clear session
     clearSession(req);
 
@@ -123,7 +117,7 @@ class UserController {
 
   // Get current user
   getCurrentUser(req: Request, res: Response) {
-    if (!req.user) {
+    if (!req.session.user || !req.user) {
       return res.status(401).json({
         success: false,
         message: "Not authenticated",

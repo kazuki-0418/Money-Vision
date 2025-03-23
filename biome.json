@@ -13,6 +13,8 @@
     "rules": {
       "correctness": {
         "noUnusedImports": "error",
+        "noUnusedVariables": "error",
+        "noUnusedFunctionParameters": "error",
         "useExhaustiveDependencies": "warn"
       },
       "suspicious": {

@@ -1,52 +1,66 @@
 import bcrypt from "bcrypt";
-import { v4 as uuidv4 } from "uuid";
-import { User, UserRegistration } from "../types";
+import { SupabaseService } from "../infrastructure/supabase";
+import { getSupabaseClient, handleSupabaseError } from "../infrastructure/supabase/supabase-client";
+import { User, UserRegistration } from "../types/users";
 
-// In-memory database for users
 class UserModel {
-  private users: User[] = [];
+  private userService;
 
-  // Create a new user
+  constructor() {
+    const { user } = SupabaseService;
+    this.userService = user;
+  }
+
   async create(userData: UserRegistration): Promise<Omit<User, "password">> {
-    // Check if user with email already exists
-    const existingUser = this.users.find((user) => user.email === userData.email);
+    const existingUser = await this.findByEmail(userData.email);
     if (existingUser) {
       throw new Error("User with this email already exists");
     }
 
-    // Hash the password
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(userData.password, salt);
 
-    const newUser: User = {
-      id: uuidv4(),
-      username: userData.username,
-      email: userData.email,
+    const createdUser = await this.userService.createUser({
+      ...userData,
       password: hashedPassword,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
+    });
 
-    this.users.push(newUser);
+    if (!createdUser) {
+      throw new Error("Failed to create user");
+    }
 
-    // Return user without password
-    const { password, ...userWithoutPassword } = newUser;
+    const { password, ...userWithoutPassword } = createdUser;
     return userWithoutPassword;
   }
 
-  // Find user by ID
-  findById(id: string): User | undefined {
-    return this.users.find((user) => user.id === id);
+  async findById(id: string): Promise<User | undefined> {
+    const user = await this.userService.getUser(id);
+    return user || undefined;
   }
 
-  // Find user by email
-  findByEmail(email: string): User | undefined {
-    return this.users.find((user) => user.email === email);
+  async findByEmail(email: string): Promise<User | undefined> {
+    try {
+      const { data, error } = await getSupabaseClient()
+        .from("users")
+        .select("*")
+        .eq("email", email)
+        .single();
+
+      if (error || !data) {
+        return undefined;
+      }
+
+      return data as User;
+    } catch (error) {
+      if (error instanceof Error) {
+        handleSupabaseError(error, "findByEmail");
+      }
+      return undefined;
+    }
   }
 
-  // Authenticate user
   async authenticate(email: string, password: string): Promise<Omit<User, "password"> | null> {
-    const user = this.findByEmail(email);
+    const user = await this.findByEmail(email);
     if (!user) {
       return null;
     }
@@ -56,14 +70,25 @@ class UserModel {
       return null;
     }
 
-    // Return user without password
     const { password: _, ...userWithoutPassword } = user;
     return userWithoutPassword;
   }
 
-  // Get all users (for admin purposes)
-  getAll(): Omit<User, "password">[] {
-    return this.users.map(({ password, ...user }) => user);
+  async getAll(): Promise<Omit<User, "password">[]> {
+    try {
+      const { data, error } = await getSupabaseClient().from("users").select("*");
+
+      if (error || !data) {
+        return [];
+      }
+
+      return data.map(({ password, ...user }: User) => user);
+    } catch (error) {
+      if (error instanceof Error) {
+        handleSupabaseError(error, "getAll");
+      }
+      return [];
+    }
   }
 }
 

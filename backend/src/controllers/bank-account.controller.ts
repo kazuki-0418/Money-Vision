@@ -1,13 +1,11 @@
 import { Request, Response } from "express";
 import bankAccountModel from "../models/bank-account.model";
-import bankApiService from "../services/bank-api.service";
-import supabaseService from "../services/supabase.service";
 
 class BankAccountController {
   // Get all accounts for the current user
   async getAccounts(req: Request, res: Response) {
     try {
-      if (!req.user) {
+      if (!req.session.user || !req.user) {
         return res.status(401).json({
           success: false,
           message: "Not authenticated",
@@ -15,25 +13,7 @@ class BankAccountController {
       }
 
       // Fetch accounts from our model
-      const accounts = bankAccountModel.findByUserId(req.user.id);
-
-      // If no accounts, try fetching from the bank API
-      if (accounts.length === 0) {
-        const apiResponse = await bankApiService.fetchAccounts(req.user.id);
-
-        if (apiResponse.success && apiResponse.data) {
-          // Save accounts to our model and Supabase
-          for (const account of apiResponse.data) {
-            bankAccountModel.create(req.user.id, account);
-            await supabaseService.saveBankAccount(req.user.id, account);
-          }
-
-          return res.status(200).json({
-            success: true,
-            data: apiResponse.data,
-          });
-        }
-      }
+      const accounts = await bankAccountModel.loadUserBankAccounts(req.session.user.id);
 
       return res.status(200).json({
         success: true,
@@ -59,7 +39,7 @@ class BankAccountController {
       }
 
       const accountId = req.params.id;
-      const account = bankAccountModel.findById(accountId);
+      const account = await bankAccountModel.getBankAccountById(accountId);
 
       if (!account) {
         return res.status(404).json({
@@ -78,22 +58,15 @@ class BankAccountController {
 
       // Fetch the latest balance from the bank API
       try {
-        const balanceResponse = await bankApiService.fetchAccountBalance(req.user.id, accountId);
-
-        if (balanceResponse.success && balanceResponse.data) {
-          // Update the account balance
-          account.balance = balanceResponse.data.balance;
-          account.updatedAt = new Date();
-        }
+        const account = await bankAccountModel.getBankAccountById(accountId);
+        return res.status(200).json({
+          success: true,
+          data: account,
+        });
       } catch (apiError) {
         // Continue with the existing balance if API fails
         console.error("Failed to fetch latest balance:", apiError);
       }
-
-      return res.status(200).json({
-        success: true,
-        data: account,
-      });
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "Server error";
       return res.status(500).json({
@@ -103,37 +76,22 @@ class BankAccountController {
     }
   }
 
-  // Refresh account balances
-  async refreshBalances(req: Request, res: Response) {
+  // Create a new account
+  async createAccount(req: Request, res: Response) {
     try {
-      if (!req.user) {
+      if (!req.session.user || !req.user) {
         return res.status(401).json({
           success: false,
           message: "Not authenticated",
         });
       }
 
-      const accounts = bankAccountModel.findByUserId(req.user.id);
-      const updatedAccounts = [];
+      const accountData = req.body;
+      const newAccount = await bankAccountModel.create(accountData);
 
-      for (const account of accounts) {
-        try {
-          const balanceResponse = await bankApiService.fetchAccountBalance(req.user.id, account.id);
-
-          if (balanceResponse.success && balanceResponse.data) {
-            // Update the account balance
-            account.balance = balanceResponse.data.balance;
-            account.updatedAt = new Date();
-            updatedAccounts.push(account);
-          }
-        } catch (apiError) {
-          console.error(`Failed to fetch balance for account ${account.id}:`, apiError);
-        }
-      }
-
-      return res.status(200).json({
+      return res.status(201).json({
         success: true,
-        data: updatedAccounts,
+        data: newAccount,
       });
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "Server error";

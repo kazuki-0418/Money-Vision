@@ -1,0 +1,558 @@
+{
+  "info": {
+    "_postman_id": "aeb50ca1-81d5-475a-bab0-5761038704b9",
+    "name": "Personal Finance API",
+    "description": "API for managing personal finances, including users, bank accounts, and transactions",
+    "schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json",
+    "_exporter_id": "23158228"
+  },
+  "item": [
+    {
+      "name": "User Management",
+      "item": [
+        {
+          "name": "Register User",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const randomString = Math.random().toString(36).substring(2, 10);",
+                  "const randomEmail = `test_${randomString}@example.com`;",
+                  "pm.variables.set(\"randomEmail\", randomEmail);",
+                  "console.log(\"Generated email:\", randomEmail);"
+                ],
+                "type": "text/javascript",
+                "packages": {}
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "pm.collectionVariables.set(\"userId\", jsonData.data.id);",
+                  "pm.collectionVariables.set(\"randomEmail\", jsonData.data.email);",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"username\": \"testuser\",\n    \"email\": \"{{randomEmail}}\",\n    \"password\": \"Password123!\"\n}"
+            },
+            "url": "http://localhost:8000/api/users/register",
+            "description": "Register a new user"
+          },
+          "response": []
+        },
+        {
+          "name": "Login User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"email\": \"{{randomEmail}}\",\n    \"password\": \"Password123!\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "http://localhost:8000/api/users/login",
+            "description": "Login a user and get authentication token"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Current User",
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "http://localhost:8000/api/users/me",
+            "description": "Get the profile of the currently logged in user"
+          },
+          "response": []
+        },
+        {
+          "name": "Logout User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "http://localhost:8000/api/users/logout",
+            "description": "Logout the current user"
+          },
+          "response": []
+        }
+      ],
+      "description": "Endpoints for user registration, login, and profile management"
+    },
+    {
+      "name": "Bank Accounts",
+      "item": [
+        {
+          "name": "Create Account",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "pm.collectionVariables.set(\"accountId\", jsonData.data.id);",
+                  "pm.collectionVariables.set(\"randomAccountNumber\", jsonData.data.account_number);",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "function getRandomAccountNumber(length) {",
+                  "    const digits = '0123456789';",
+                  "    let result = '';",
+                  "    for (let i = 0; i < length; i++) {",
+                  "        result += digits.charAt(Math.floor(Math.random() * digits.length));",
+                  "    }",
+                  "    return result;",
+                  "}",
+                  "",
+                  "const randomAccountNumber = getRandomAccountNumber(10);",
+                  "pm.variables.set(\"randomAccountNumber\", randomAccountNumber);"
+                ],
+                "type": "text/javascript",
+                "packages": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"accountName\": \"Test Bank Account\",\n    \"accountNumber\":\"{{randomAccountNumber}}\",\n    \"type\": \"savings\",\n    \"balance\": 1000.00,\n    \"currency\":\"JPN\",\n    \"userId\":\"{{userId}}\"\n}"
+            },
+            "url": "http://localhost:8000/api/accounts",
+            "description": "Create a new bank account"
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Accounts",
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "http://localhost:8000/api/accounts",
+            "description": "Get all bank accounts for the current user"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Account by ID",
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "http://localhost:8000/api/accounts/{{accountId}}",
+            "description": "Get details of a specific bank account"
+          },
+          "response": []
+        }
+      ],
+      "description": "Endpoints for managing bank accounts"
+    },
+    {
+      "name": "Transactions",
+      "item": [
+        {
+          "name": "Create Transaction",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "pm.collectionVariables.set(\"transactionId\", jsonData.data.id);"
+                ],
+                "type": "text/javascript",
+                "packages": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [""],
+                "type": "text/javascript",
+                "packages": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"accountId\": \"{{accountId}}\",\n    \"amount\": 50.25,\n    \"description\": \"Grocery shopping\",\n    \"category\": \"Food\",\n    \"date\": \"2023-06-15T12:30:00Z\",\n    \"type\": \"Checking\"\n    \n}"
+            },
+            "url": "http://localhost:8000/api/transactions",
+            "description": "Create a new transaction"
+          },
+          "response": []
+        },
+        {
+          "name": "Create Multiple Transactions",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 201\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test(\"Success message is returned\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.eql(true);",
+                  "    pm.expect(jsonData.message).to.eql(\"Transactions created successfully\");",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [""],
+                "type": "text/javascript",
+                "packages": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "[\n    {\n        \"accountId\": \"{{accountId}}\",\n        \"amount\": 50.25,\n        \"description\": \"Grocery shopping\",\n        \"category\": \"Food\",\n        \"date\": \"2023-06-15T12:30:00Z\",\n        \"type\": \"Checking\"\n    },\n    {\n        \"accountId\": \"{{accountId}}\",\n        \"amount\": 120.75,\n        \"description\": \"Electricity bill\",\n        \"category\": \"Utilities\",\n        \"date\": \"2023-06-16T15:45:00Z\",\n        \"type\": \"Checking\"\n    },\n    {\n        \"accountId\": \"{{accountId}}\",\n        \"amount\": 35.80,\n        \"description\": \"Movie tickets\",\n        \"category\": \"Entertainment\",\n        \"date\": \"2023-06-17T19:20:00Z\",\n        \"type\": \"Checking\"\n    }\n]"
+            },
+            "url": "http://localhost:8000/api/transactions/bulk",
+            "description": "Create multiple transactions at once"
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Transactions",
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8000/api/transactions?limit=50&offset=0",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8000",
+              "path": ["api", "transactions"],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "50"
+                },
+                {
+                  "key": "offset",
+                  "value": "0"
+                }
+              ]
+            },
+            "description": "Get all transactions for the current user"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Account Transactions",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8000/api/transactions/account/{{accountId}}?limit=50&offset=0",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8000",
+              "path": ["api", "transactions", "account", "{{accountId}}"],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "50"
+                },
+                {
+                  "key": "offset",
+                  "value": "0"
+                }
+              ]
+            },
+            "description": "Get transactions for a specific account"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Transaction by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": "http://localhost:8000/api/transactions/{{transactionId}}",
+            "description": "Get details of a specific transaction"
+          },
+          "response": []
+        },
+        {
+          "name": "Search Transactions",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8000/api/transactions/search?q=groceries&limit=50&offset=0",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8000",
+              "path": ["api", "transactions", "search"],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "groceries"
+                },
+                {
+                  "key": "limit",
+                  "value": "50"
+                },
+                {
+                  "key": "offset",
+                  "value": "0"
+                }
+              ]
+            },
+            "description": "Search transactions by query"
+          },
+          "response": []
+        },
+        {
+          "name": "Update Transaction",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"amount\": 52.99,\n    \"description\": \"Updated grocery shopping\",\n    \"category\": \"Food & Groceries\"\n}"
+            },
+            "url": "http://localhost:8000/api/transactions/{{transactionId}}",
+            "description": "Update an existing transaction"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Transaction",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": "http://localhost:8000/api/transactions/{{transactionId}}",
+            "description": "Delete a transaction"
+          },
+          "response": []
+        }
+      ],
+      "description": "Endpoints for managing transactions"
+    }
+  ],
+  "variable": [
+    {
+      "key": "token",
+      "value": "your_jwt_token_here"
+    },
+    {
+      "key": "accountId",
+      "value": "account_id_here"
+    },
+    {
+      "key": "transactionId",
+      "value": "transaction_id_here"
+    },
+    {
+      "key": "userId",
+      "value": "",
+      "type": "default"
+    },
+    {
+      "key": "randomAccountNumber",
+      "value": "",
+      "type": "default"
+    },
+    {
+      "key": "randomEmail",
+      "value": "",
+      "type": "default"
+    }
+  ]
+}

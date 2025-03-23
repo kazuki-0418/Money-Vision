@@ -13,6 +13,7 @@ router.get("/search", transactionController.searchTransactions);
 router.get("/account/:accountId", transactionController.getAccountTransactions);
 router.get("/:id", transactionController.getTransaction);
 router.post("/", transactionController.createTransaction);
+router.post("/bulk", authMiddleware, transactionController.createTransactions);
 router.put("/:id", transactionController.updateTransaction);
 router.delete("/:id", transactionController.deleteTransaction);
 

@@ -8,8 +8,8 @@ const router = express.Router();
 router.use(authMiddleware);
 
 // Bank account routes
+router.post("/", bankAccountController.createAccount);
 router.get("/", bankAccountController.getAccounts);
-router.get("/refresh", bankAccountController.refreshBalances);
 router.get("/:id", bankAccountController.getAccountById);
 
 export default router;

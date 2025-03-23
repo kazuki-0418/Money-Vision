@@ -1,9 +1,7 @@
 import { Request, Response } from "express";
 import bankAccountModel from "../models/bank-account.model";
 import transactionModel from "../models/transaction.model";
-import bankApiService from "../services/bank-api.service";
-import supabaseService from "../services/supabase.service";
-import { TransactionCreate, TransactionUpdate } from "../types";
+import { TransactionCreate, TransactionUpdate } from "../types/transactions";
 
 class TransactionController {
   // Get all transactions for the current user
@@ -21,7 +19,7 @@ class TransactionController {
       const offset = req.query.offset ? Number.parseInt(req.query.offset as string) : 0;
 
       // Fetch transactions from our model
-      const transactions = transactionModel.findByUserId(req.user.id, limit, offset);
+      const transactions = await transactionModel.findByUserId(req.user.id, limit, offset);
 
       return res.status(200).json({
         success: true,
@@ -54,7 +52,7 @@ class TransactionController {
       const accountId = req.params.accountId;
 
       // Check if the account exists and belongs to the user
-      const account = bankAccountModel.findById(accountId);
+      const account = await bankAccountModel.getBankAccountById(accountId);
       if (!account || account.userId !== req.user.id) {
         return res.status(404).json({
           success: false,
@@ -66,46 +64,8 @@ class TransactionController {
       const limit = req.query.limit ? Number.parseInt(req.query.limit as string) : 100;
       const offset = req.query.offset ? Number.parseInt(req.query.offset as string) : 0;
 
-      // Check if we need to fetch new transactions from the bank API
-      const shouldFetchFromApi = req.query.refresh === "true";
-
-      if (shouldFetchFromApi) {
-        try {
-          // Parse date range if provided
-          const fromDate = req.query.fromDate ? new Date(req.query.fromDate as string) : undefined;
-          const toDate = req.query.toDate ? new Date(req.query.toDate as string) : undefined;
-
-          const apiResponse = await bankApiService.fetchTransactions(
-            req.user.id,
-            accountId,
-            fromDate,
-            toDate,
-          );
-
-          if (apiResponse.success && apiResponse.data) {
-            // Save transactions to model and Supabase
-            const newTransactions = apiResponse.data;
-            await supabaseService.saveTransactions(req.user.id, newTransactions);
-
-            // Return the new transactions
-            return res.status(200).json({
-              success: true,
-              data: newTransactions,
-              pagination: {
-                limit,
-                offset,
-                total: newTransactions.length,
-              },
-            });
-          }
-        } catch (apiError) {
-          console.error("Failed to fetch transactions from bank API:", apiError);
-          // Continue with existing transactions
-        }
-      }
-
       // Fetch transactions from our model
-      const transactions = transactionModel.findByAccountId(accountId, limit, offset);
+      const transactions = await transactionModel.findByAccountId(accountId, limit, offset);
 
       return res.status(200).json({
         success: true,
@@ -136,20 +96,12 @@ class TransactionController {
       }
 
       const transactionId = req.params.id;
-      const transaction = transactionModel.findById(transactionId);
+      const transaction = await transactionModel.findById(transactionId);
 
       if (!transaction) {
         return res.status(404).json({
           success: false,
           message: "Transaction not found",
-        });
-      }
-
-      // Check if the transaction belongs to the current user
-      if (transaction.userId !== req.user.id) {
-        return res.status(403).json({
-          success: false,
-          message: "You do not have permission to access this transaction",
         });
       }
 
@@ -190,24 +142,7 @@ class TransactionController {
       const offset = req.query.offset ? Number.parseInt(req.query.offset as string) : 0;
 
       // Search transactions
-      const transactions = transactionModel.search(req.user.id, query, limit, offset);
-
-      // Also search in Supabase
-      try {
-        const supabaseResults = await supabaseService.searchTransactions(req.user.id, query);
-
-        // Combine results (avoiding duplicates)
-        const existingIds = new Set(transactions.map((t) => t.id));
-        for (const t of supabaseResults) {
-          if (!existingIds.has(t.id)) {
-            transactions.push(t);
-            existingIds.add(t.id);
-          }
-        }
-      } catch (supabaseError) {
-        console.error("Failed to search in Supabase:", supabaseError);
-        // Continue with local results
-      }
+      const transactions = await transactionModel.search(req.user.id, query, limit, offset);
 
       return res.status(200).json({
         success: true,
@@ -255,8 +190,8 @@ class TransactionController {
       }
 
       // Check if the account exists and belongs to the user
-      const account = bankAccountModel.findById(transactionData.accountId);
-      if (!account || account.userId !== req.user.id) {
+      const account = await bankAccountModel.getBankAccountById(transactionData.accountId);
+      if (!account || account.userId !== req.session.user.id) {
         return res.status(404).json({
           success: false,
           message: "Account not found or you do not have access to it",
@@ -264,17 +199,79 @@ class TransactionController {
       }
 
       // Create the transaction
-      const transaction = transactionModel.create(req.user.id, transactionData);
-
-      // Save to Supabase
-      await supabaseService.saveTransaction(req.user.id, transaction);
-
-      // Update account balance
-      bankAccountModel.updateBalance(transactionData.accountId, transactionData.amount);
+      const transaction = await transactionModel.create(req.session.user.id, transactionData);
 
       return res.status(201).json({
         success: true,
         data: transaction,
+      });
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Server error";
+      return res.status(500).json({
+        success: false,
+        message: errorMessage,
+      });
+    }
+  }
+
+  // Create multiple transactions at once
+  async createTransactions(req: Request, res: Response) {
+    try {
+      if (!req.user) {
+        return res.status(401).json({
+          success: false,
+          message: "Not authenticated",
+        });
+      }
+
+      const transactions: TransactionCreate[] = req.body;
+
+      if (!Array.isArray(transactions) || transactions.length === 0) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid input: expected non-empty array of transactions",
+        });
+      }
+
+      // Validate each transaction
+      for (const transaction of transactions) {
+        if (
+          !transaction.accountId ||
+          transaction.amount === undefined ||
+          !transaction.description ||
+          !transaction.category ||
+          !transaction.date ||
+          !transaction.type
+        ) {
+          return res.status(400).json({
+            success: false,
+            message: "Missing required fields in one or more transactions",
+          });
+        }
+
+        // Check if the account exists and belongs to the user
+        const account = await bankAccountModel.getBankAccountById(transaction.accountId);
+        if (!account || account.userId !== req.user.id) {
+          return res.status(404).json({
+            success: false,
+            message: "One or more accounts not found or you do not have access to them",
+          });
+        }
+      }
+
+      // Save all transactions
+      const success = await transactionModel.saveMany(req.user.id, transactions);
+
+      if (!success) {
+        return res.status(500).json({
+          success: false,
+          message: "Failed to create transactions",
+        });
+      }
+
+      return res.status(201).json({
+        success: true,
+        message: "Transactions created successfully",
       });
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "Server error";
@@ -299,7 +296,7 @@ class TransactionController {
       const updateData: TransactionUpdate = req.body;
 
       // Find the transaction
-      const transaction = transactionModel.findById(transactionId);
+      const transaction = await transactionModel.findById(transactionId);
 
       if (!transaction) {
         return res.status(404).json({
@@ -308,16 +305,8 @@ class TransactionController {
         });
       }
 
-      // Check if the transaction belongs to the current user
-      if (transaction.userId !== req.user.id) {
-        return res.status(403).json({
-          success: false,
-          message: "You do not have permission to update this transaction",
-        });
-      }
-
       // Update the transaction
-      const updatedTransaction = transactionModel.update(transactionId, updateData);
+      const updatedTransaction = transactionModel.update(transactionId, req.user.id, updateData);
 
       if (!updatedTransaction) {
         return res.status(500).json({
@@ -325,15 +314,6 @@ class TransactionController {
           message: "Failed to update transaction",
         });
       }
-
-      // If amount changed, update account balance
-      if (updateData.amount !== undefined && updateData.amount !== transaction.amount) {
-        const amountDifference = updateData.amount - transaction.amount;
-        bankAccountModel.updateBalance(transaction.accountId, amountDifference);
-      }
-
-      // Update in Supabase
-      await supabaseService.updateTransaction(req.user.id, transactionId, updateData);
 
       return res.status(200).json({
         success: true,
@@ -361,7 +341,7 @@ class TransactionController {
       const transactionId = req.params.id;
 
       // Find the transaction
-      const transaction = transactionModel.findById(transactionId);
+      const transaction = await transactionModel.findById(transactionId);
 
       if (!transaction) {
         return res.status(404).json({
@@ -370,16 +350,8 @@ class TransactionController {
         });
       }
 
-      // Check if the transaction belongs to the current user
-      if (transaction.userId !== req.user.id) {
-        return res.status(403).json({
-          success: false,
-          message: "You do not have permission to delete this transaction",
-        });
-      }
-
       // Delete the transaction
-      const deleted = transactionModel.delete(transactionId);
+      const deleted = transactionModel.delete(transactionId, req.user.id);
 
       if (!deleted) {
         return res.status(500).json({
@@ -387,12 +359,6 @@ class TransactionController {
           message: "Failed to delete transaction",
         });
       }
-
-      // Reverse the transaction amount in the account balance
-      bankAccountModel.updateBalance(transaction.accountId, -transaction.amount);
-
-      // Delete from Supabase
-      await supabaseService.deleteTransaction(req.user.id, transactionId);
 
       return res.status(200).json({
         success: true,
