@@ -25,9 +25,17 @@ export function ReportSection(): JSX.Element {
         <CardHeader className="bg-white p-4">
           <CardTitle className="text-xl font-medium leading-[22px]">Report</CardTitle>
         </CardHeader>
-        <CardContent className="h-[calc(100%-64px)] p-0">
-          <PieChart transactions={data} size="small" align={"right"} />
-        </CardContent>
+        {data.length === 0 ? (
+          <CardContent className="h-[calc(100%-64px)] p-0">
+            <div className="flex items-center justify-center h-full w-full text-muted-foreground">
+              No data available
+            </div>
+          </CardContent>
+        ) : (
+          <CardContent className="h-[calc(100%-64px)] p-0">
+            <PieChart transactions={data} size="small" align={"right"} />
+          </CardContent>
+        )}
       </Card>
     </div>
   );

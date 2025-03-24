@@ -33,13 +33,13 @@ export function Home(): JSX.Element {
             </div>
 
             {/* モバイル画面での1列レイアウト、デスクトップでの2列レイアウト */}
-            <div className="flex flex-col  xl:flex-row gap-4 lg:gap-6 overflow-auto">
-              <div className="flex flex-col gap-4 md:gap-6 w-full">
+            <div className="flex flex-col xl:flex-row gap-4 lg:gap-6">
+              <div className="flex flex-col gap-4 md:gap-6 w-full xl:w-1/2">
                 <SummarySection />
                 <DashboardSection />
               </div>
 
-              <div className="w-full">
+              <div className="w-full xl:w-1/2">
                 <ReportSection />
               </div>
             </div>

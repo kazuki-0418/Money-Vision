@@ -73,33 +73,41 @@ export function DashboardSection(): JSX.Element {
         </CardTitle>
       </CardHeader>
       <CardContent className="p-0">
-        <Table maxHeight="400px">
-          <TableHeader>
-            <TableRow>
-              <TableHead style={{ width: "20%" }}>Date</TableHead>
+        {transactions.length === 0 ? (
+          <div className="flex items-center justify-center h-[400px]">
+            <p>No transactions available</p>
+          </div>
+        ) : (
+          <Table maxHeight="400px">
+            <TableHeader>
+              <TableRow>
+                <TableHead style={{ width: "20%" }}>Date</TableHead>
 
-              <TableHead style={{ width: "40%" }}>Name</TableHead>
-              <TableHead style={{ width: "20%" }}>Amount</TableHead>
-              <TableHead style={{ width: "20%" }}>Status</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {transactions.map((transaction) => (
-              <TableRow key={transaction.name + transaction.date}>
-                <TableCell style={{ width: "20%" }}>
-                  {format(new Date(transaction.date), "dd/MM/yyyy")}
-                </TableCell>
-                <TableRowHeaderCell style={{ width: "40%" }}>{transaction.name}</TableRowHeaderCell>
-                <TableCell className={getTypeColor(transaction.type)}>
-                  {formatAmount(transaction.amount, transaction.type)}
-                </TableCell>
-                <TableCell className={getTypeColor(transaction.type)}>
-                  {transaction.type.charAt(0).toUpperCase() + transaction.type.slice(1)}
-                </TableCell>
+                <TableHead style={{ width: "40%" }}>Name</TableHead>
+                <TableHead style={{ width: "20%" }}>Amount</TableHead>
+                <TableHead style={{ width: "20%" }}>Status</TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+            </TableHeader>
+            <TableBody>
+              {transactions.map((transaction) => (
+                <TableRow key={transaction.name + transaction.date}>
+                  <TableCell style={{ width: "20%" }}>
+                    {format(new Date(transaction.date), "dd/MM/yyyy")}
+                  </TableCell>
+                  <TableRowHeaderCell style={{ width: "40%" }}>
+                    {transaction.name}
+                  </TableRowHeaderCell>
+                  <TableCell className={getTypeColor(transaction.type)}>
+                    {formatAmount(transaction.amount, transaction.type)}
+                  </TableCell>
+                  <TableCell className={getTypeColor(transaction.type)}>
+                    {transaction.type.charAt(0).toUpperCase() + transaction.type.slice(1)}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        )}
       </CardContent>
     </Card>
   );

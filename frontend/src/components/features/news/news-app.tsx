@@ -35,7 +35,7 @@ function NewsSlider({
   const currentArticle = articles[currentIndex];
 
   return (
-    <div className="relative w-full max-w-5xl mx-auto ">
+    <div className="relative w-full max-w-5xl mx-auto">
       {/* 前へボタン */}
       <button
         onClick={prevSlide}
