@@ -11,6 +11,7 @@ import {
 import { Button } from "../../components/ui/button";
 import { Modal } from "../../components/ui/modal";
 import { categories } from "../../const/mockData";
+import { useWindowSize } from "../../hooks/windowsize";
 import type { BankAccount } from "../../types/account";
 import type { Transaction as TransactionData } from "../../types/transaction";
 import { ImportButton } from "../features/import/importButton";
@@ -35,6 +36,15 @@ export function TransactionPage(): JSX.Element {
   const [isFormModalOpen, setIsFormModalOpen] = useState(false);
   const [editingTransaction, setEditingTransaction] = useState<TransactionData | null>(null);
   const [accounts, setAccounts] = useState<BankAccount[]>([]);
+  const { width } = useWindowSize();
+  const isDesktopScreen = width > 1024;
+
+  const shouldShowPage = () => {
+    if (!isDesktopScreen && isNavOpen) {
+      return false;
+    }
+    return true;
+  };
 
   const handleFilterChange = (filters: FilterOptions) => {
     const filtered = transactions.filter((transaction) => {
@@ -169,13 +179,14 @@ export function TransactionPage(): JSX.Element {
             <h1 className="text-2xl font-bold">Transactions</h1>
             <ImportButton />
           </div>
-
-          <TransactionFilter
-            accounts={accounts}
-            categories={categories}
-            onFilterChange={handleFilterChange}
-            transactions={transactions}
-          />
+          {shouldShowPage() && (
+            <TransactionFilter
+              accounts={accounts}
+              categories={categories}
+              onFilterChange={handleFilterChange}
+              transactions={transactions}
+            />
+          )}
 
           <div className="flex justify-end">
             <Button

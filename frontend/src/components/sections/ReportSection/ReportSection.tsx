@@ -26,7 +26,7 @@ export function ReportSection(): JSX.Element {
           <CardTitle className="text-xl font-medium leading-[22px]">Report</CardTitle>
         </CardHeader>
         <CardContent className="h-[calc(100%-64px)] p-0">
-          <PieChart transactions={data} size="small" />
+          <PieChart transactions={data} size="small" align={"right"} />
         </CardContent>
       </Card>
     </div>

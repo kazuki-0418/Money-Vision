@@ -76,7 +76,7 @@ export function ImportButton() {
 
       <Button
         variant="outline"
-        className="flex bg-white border border-gray-200 rounded-md gap-2 items-center"
+        className="flex bg-white border border-gray-200 rounded-md gap-2 items-center hover:bg-gray-100"
         onClick={handleImportClick}
         disabled={isLoading}
       >

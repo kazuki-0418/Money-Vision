@@ -45,9 +45,10 @@ const COLORS = [
 type Props = {
   transactions: Transaction[];
   size: "small" | "large";
+  align: "center" | "right";
 };
 
-export function PieChart({ transactions, size }: Props) {
+export function PieChart({ transactions, size, align }: Props) {
   const expensePieData = createPieChartData(transactions, "expense");
   const incomePieData = createPieChartData(transactions, "income");
 
@@ -164,8 +165,8 @@ export function PieChart({ transactions, size }: Props) {
                 <Tooltip content={CustomTooltip} />
                 <Legend
                   layout="vertical"
-                  verticalAlign={size === "small" ? "top" : "middle"}
-                  align={size === "small" ? "center" : "right"}
+                  verticalAlign={align === "right" ? "middle" : "top"}
+                  align={align === "right" ? "right" : "center"}
                   formatter={legendFormatter as unknown as undefined}
                 />
               </RechartPieChart>
@@ -200,8 +201,8 @@ export function PieChart({ transactions, size }: Props) {
                 <Tooltip content={CustomTooltip} />
                 <Legend
                   layout="vertical"
-                  verticalAlign={size === "small" ? "top" : "middle"}
-                  align={size === "small" ? "center" : "right"}
+                  verticalAlign={align === "right" ? "middle" : "top"}
+                  align={align === "right" ? "right" : "center"}
                   formatter={legendFormatter as unknown as undefined}
                 />
               </RechartPieChart>
