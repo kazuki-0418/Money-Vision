@@ -20,7 +20,6 @@ class TransactionController {
 
       // Fetch transactions from our model
       const transactions = await transactionModel.findByUserId(req.user.id, limit, offset);
-
       return res.status(200).json({
         success: true,
         data: transactions,
@@ -233,35 +232,8 @@ class TransactionController {
         });
       }
 
-      // Validate each transaction
-      for (const transaction of transactions) {
-        if (
-          !transaction.accountId ||
-          transaction.amount === undefined ||
-          !transaction.description ||
-          !transaction.category ||
-          !transaction.date ||
-          !transaction.type
-        ) {
-          return res.status(400).json({
-            success: false,
-            message: "Missing required fields in one or more transactions",
-          });
-        }
-
-        // Check if the account exists and belongs to the user
-        const account = await bankAccountModel.getBankAccountById(transaction.accountId);
-        if (!account || account.userId !== req.user.id) {
-          return res.status(404).json({
-            success: false,
-            message: "One or more accounts not found or you do not have access to them",
-          });
-        }
-      }
-
       // Save all transactions
       const success = await transactionModel.saveMany(req.user.id, transactions);
-
       if (!success) {
         return res.status(500).json({
           success: false,

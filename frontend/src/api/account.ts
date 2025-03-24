@@ -1,13 +1,14 @@
 import { client } from "./client";
 
-export const getAccounts = async () => {
-  return client.get("/accounts");
+const BASE_URL_ACCOUNTS = "/api/accounts";
+
+export const loadAccountsApi = async () => {
+  const response = await client.get(BASE_URL_ACCOUNTS);
+  return response.data.data;
 };
 
 export const getAccountById = async (id: string) => {
-  return client.get(`/accounts/${id}`);
-};
+  const response = await client.get(`${BASE_URL_ACCOUNTS}/${id}`);
 
-export const refreshBalances = async () => {
-  return client.get("/accounts/refresh");
+  return response.data.data;
 };
