@@ -42,15 +42,11 @@ function LoginForm() {
     const { email, password } = formData;
     try {
       const response = await loginApi({ email, password });
-      if (response.data.success) {
+      if (response.success) {
         const { data } = response;
         setSuccess(true);
         login();
-        setUser({
-          id: data.id,
-          username: data.username,
-          email: data.email,
-        });
+        setUser(data);
         window.location.href = "/";
       }
     } catch (err) {

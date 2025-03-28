@@ -2,11 +2,12 @@ import { client } from "./client";
 
 const BASE_URL_USERS = "/api/users";
 
-export const loginApi = (credentials: {
+export const loginApi = async (credentials: {
   email: string;
   password: string;
 }) => {
-  return client.post(`${BASE_URL_USERS}/login`, credentials);
+  const res = await client.post(`${BASE_URL_USERS}/login`, credentials);
+  return res.data;
 };
 
 export const registerApi = (userData: {

@@ -78,7 +78,7 @@ export function DashboardSection(): JSX.Element {
             <p>No transactions available</p>
           </div>
         ) : (
-          <Table maxHeight="400px">
+          <Table maxHeight="1100px">
             <TableHeader>
               <TableRow>
                 <TableHead style={{ width: "20%" }}>Date</TableHead>

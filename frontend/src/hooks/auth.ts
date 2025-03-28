@@ -60,7 +60,11 @@ export const useAuthManager = () => {
   useEffect(() => {
     const init = async () => {
       const authStatus = await checkAuth();
-      if (authStatus === false && window.location.pathname !== "/login") {
+      if (
+        authStatus === false &&
+        window.location.pathname !== "/login" &&
+        window.location.pathname !== "/register"
+      ) {
         window.location.href = "/login";
       }
     };
